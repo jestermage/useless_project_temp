@@ -1,4 +1,4 @@
-// tilt.js - Method 1: Tilt (Cup-Pour Method)
+// tilt.js - Method 1: Tilt control
 class TiltVolumeControl {
   constructor(canvasId, onVolumeChange) {
     this.canvas = document.getElementById(canvasId);
@@ -118,6 +118,9 @@ class TiltVolumeControl {
     const onEnd = () => {
       this.isDragging = false;
       this.dragEnd = null;
+      this.angle = 0;
+      this.angularVelocity = 0;
+      this.sloshVelocity = 0;
     };
 
     this.canvas.addEventListener('mousedown', onStart);
@@ -145,8 +148,7 @@ class TiltVolumeControl {
   }
 
   updatePhysics(dt) {
-    // NO AUTO-BALANCER:
-    // Once tilted, the tube stays tilted! It does not balance back automatically.
+    // Release resets the control to level so every volume change requires a new tilt.
     if (!this.isDragging) {
       this.angularVelocity *= 0.94;
       this.angle += this.angularVelocity * dt;
@@ -170,18 +172,10 @@ class TiltVolumeControl {
       const normalizedTilt = (this.angle - deadzone) / (this.maxAngle - deadzone);
       flowRate = Math.pow(normalizedTilt, 1.4) * 6; // % per second (deliberately slow)
       this.volume = Math.min(100, this.volume + flowRate * dt);
-      if (window.soundEngine && Math.random() < 0.3) {
-        window.soundEngine.playPourSound(normalizedTilt);
-      }
-      this.spawnPourParticles('in', flowRate);
     } else if (this.angle < -deadzone) {
       const normalizedTilt = (-this.angle - deadzone) / (this.maxAngle - deadzone);
       flowRate = -Math.pow(normalizedTilt, 1.4) * 6; // % per second (deliberately slow)
       this.volume = Math.max(0, this.volume + flowRate * dt);
-      if (window.soundEngine && Math.random() < 0.3) {
-        window.soundEngine.playPourSound(normalizedTilt);
-      }
-      this.spawnPourParticles('out', -flowRate);
     }
 
     // ONLY notify master volume when actively flowing
@@ -255,18 +249,46 @@ class TiltVolumeControl {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.width, this.height);
 
-    // Draw pour particles
-    this.drawParticles(ctx);
-
-    // Draw tilted tube (with rotation)
+    // Draw the tilt control without the old liquid and drop animation.
     ctx.save();
     ctx.translate(this.centerX, this.centerY);
     ctx.rotate(this.angle);
-    this.drawTiltTube(ctx);
+    this.drawSimpleTiltControl(ctx);
     ctx.restore();
 
     // Draw HUD overlay
     this.drawTiltHUD(ctx);
+  }
+
+  drawSimpleTiltControl(ctx) {
+    const halfL = this.tubeLength / 2;
+    const halfH = this.tubeHeight / 2;
+
+    ctx.fillStyle = 'rgba(12, 16, 28, 0.9)';
+    ctx.strokeStyle = '#00f5d4';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-halfL, -halfH, this.tubeLength, this.tubeHeight, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    for (let i = 10; i <= 90; i += 10) {
+      const tickX = -halfL + (this.tubeLength * i) / 100;
+      ctx.strokeStyle = i % 50 === 0 ? '#ffffff' : 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = i % 50 === 0 ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(tickX, -halfH + 5);
+      ctx.lineTo(tickX, -halfH + (i % 50 === 0 ? 15 : 10));
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = '#fca311';
+    ctx.beginPath();
+    ctx.arc(-halfL + (this.tubeLength * this.volume) / 100, 0, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    this.drawHandle(ctx, -halfL - 25, 0, 'left');
+    this.drawHandle(ctx, halfL + 25, 0, 'right');
   }
 
   drawReservoirs(ctx) {
