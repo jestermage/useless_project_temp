@@ -15,11 +15,17 @@ class ScreamVolumeControl {
     this.isListening = false;
     this.isSpeaking = false;
     this.silenceFrames = 0;
-    this.voiceThreshold = 0.035;
+    this.voiceThreshold = 0.025;
     this.silenceFrameLimit = 12;
 
     if (this.button) {
-      this.button.addEventListener('click', () => this.start());
+      this.button.addEventListener('click', () => {
+        if (this.isListening) {
+          this.stop();
+        } else {
+          this.start();
+        }
+      });
     }
   }
 
@@ -31,11 +37,14 @@ class ScreamVolumeControl {
     if (!this.isListening) return;
     this.isListening = false;
     this.isSpeaking = false;
-    this.stream.getTracks().forEach((track) => track.stop());
+    if (this.stream) {
+      this.stream.getTracks().forEach((track) => track.stop());
+    }
     this.stream = null;
-    this.audioContext.close();
-    this.button.disabled = false;
-    this.button.textContent = '🎙 Start Microphone';
+    if (this.audioContext) {
+      this.audioContext.close();
+    }
+    this.button.textContent = '🎙 Turn Microphone On';
     this.setStatus(`Volume set at ${this.volume.toFixed(0)}%. Start again to adjust it.`, '#fca311');
   }
 
@@ -47,7 +56,6 @@ class ScreamVolumeControl {
       return;
     }
 
-    this.button.disabled = true;
     this.button.textContent = 'Listening...';
     this.setStatus('Calibrating room noise for one second. Get ready to scream!', '#fca311');
 
@@ -64,12 +72,11 @@ class ScreamVolumeControl {
       this.data = new Uint8Array(this.analyser.fftSize);
       this.microphone.connect(this.analyser);
       this.isListening = true;
-      this.button.textContent = 'Microphone Active';
-      this.setStatus('Speak to adjust the volume. Stop speaking to set it.', '#00f5d4');
+      this.button.textContent = '⏹ Turn Microphone Off';
+      this.setStatus('Moderate voice lowers volume. Only a strong scream reaches high volume. Turn the microphone off to set it.', '#00f5d4');
       this.measure();
     } catch (error) {
-      this.button.disabled = false;
-      this.button.textContent = '🎙 Start Microphone';
+      this.button.textContent = '🎙 Turn Microphone On';
       this.setStatus('Microphone permission was denied or unavailable. Check browser permissions and try again.', '#ff007f');
     }
   }
@@ -92,8 +99,8 @@ class ScreamVolumeControl {
         this.setStatus('Voice detected. Stop speaking when the volume is where you want it.', '#00f5d4');
       }
 
-      const loudness = Math.max(0, Math.min(1, (rms - this.voiceThreshold) / 0.18));
-      const targetVolume = loudness * 100;
+      const loudness = Math.max(0, Math.min(1, (rms - this.voiceThreshold) / 0.42));
+      const targetVolume = Math.pow(loudness, 1.8) * 100;
       this.volume += (targetVolume - this.volume) * 0.18;
       this.onVolumeChange(this.volume);
     } else if (this.isSpeaking) {
