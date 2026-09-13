@@ -1,1 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>"Useless" Volume Control — Rage-Bait Edition</title>
+  <meta name="description" content="A deliberately frustrating volume control challenge with four chaotic options for reaching an exact volume.">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    window.onerror = function(msg, url, line, col, error) {
+      const errEl = document.createElement('div');
+      errEl.id = 'js-runtime-error';
+      errEl.style.cssText = 'background: #ff0055; color: white; padding: 20px; font-size: 16px; font-family: monospace; z-index: 999999; position: fixed; top: 0; left: 0; right: 0; white-space: pre-wrap;';
+      errEl.textContent = 'RUNTIME ERROR: ' + msg + '\nLocation: ' + url + ':' + line + ':' + col;
+      document.body ? document.body.appendChild(errEl) : document.addEventListener('DOMContentLoaded', () => document.body.appendChild(errEl));
+      console.error(errEl.textContent);
+    };
+  </script>
+</head>
+<body>
 
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-badge">
+        <div class="logo-icon">🎛️</div>
+        <div class="logo-title">
+          <h1>"Useless" Volume Control</h1>
+          <p>DELIBERATELY FRUSTRATING • RAGE-BAIT EDITION</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-rage">⚡ Rage Level: Maximum</span>
+        <span class="badge badge-hackathon">🎯 TinkerHub Hackathon</span>
+      </div>
+    </header>
+
+    <!-- Master Volume HUD -->
+    <section class="master-hud" aria-label="Master Volume HUD">
+      <div class="hud-top-row">
+        <div class="volume-readout-group">
+          <span class="hud-label">Master Volume Level</span>
+          <div class="volume-number-wrap">
+            <span id="master-volume-value" class="volume-value">50.0%</span>
+            <span id="master-db-value" class="volume-db">-6.0 dB</span>
+          </div>
+          <div class="acquired-box">
+            <span class="acquired-title">VOLUME ACQUIRED:</span>
+            <span id="acquired-volume-tag" class="acquired-tag">50.0%</span>
+          </div>
+          <span id="master-volume-desc" class="volume-desc">⚖️ PAINFULLY MODERATE (Normal, But Why?)</span>
+        </div>
+
+      </div>
+
+      <!-- Master Volume Visual Runway -->
+      <div class="master-bar-container" title="Master volume visualizer">
+        <div id="master-bar-fill" class="master-bar-fill"></div>
+      </div>
+
+      <!-- Target Challenge Mini-Game -->
+      <div class="challenge-card">
+        <div class="challenge-info">
+          <div class="challenge-title">🎯 Volume Challenge</div>
+          <div class="challenge-target-box">
+            <span class="target-label">TARGET</span>
+            <span class="target-val" id="target-value-text">42%</span>
+            <span class="target-arrow">→</span>
+            <span class="target-label">YOU</span>
+            <span class="target-current" id="target-current-text">50.0%</span>
+          </div>
+          <span class="target-status" id="target-status-text">Use Option 1, Option 2, Option 3, or Option 4 to reach the target</span>
+        </div>
+
+        <div class="challenge-hold-wrap">
+          <span class="hud-label">Hold Progress</span>
+          <div class="target-progress-bar">
+            <div id="target-progress-fill" class="target-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="challenge-actions">
+          <button id="new-target-btn" class="btn">🎲 New Target</button>
+          <span class="frustration-badge">Attempts: <span id="frustration-counter">0</span></span>
+        </div>
+      </div>
+    </section>
+
+    <nav class="method-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="all" role="tab" id="tab-all">
+        🔥 All 4 Options
+      </button>
+      <button class="tab-btn" data-tab="tilt" role="tab" id="tab-tilt">
+        ◈ Option 1
+      </button>
+      <button class="tab-btn" data-tab="cannon" role="tab" id="tab-cannon">
+        ◈ Option 2
+      </button>
+      <button class="tab-btn" data-tab="crank" role="tab" id="tab-crank">
+        ◈ Option 3
+      </button>
+      <button class="tab-btn" data-tab="scream" role="tab" id="tab-scream">
+        ◈ Option 4
+      </button>
+    </nav>
+
+    <!-- OPTION 1 -->
+    <section class="method-panel active" id="panel-tilt" role="tabpanel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>◈ Option 1</h2>
+        </div>
+        <div class="panel-actions">
+          <button class="quick-switch-btn" data-switch="cannon">Next: Option 2 ➔</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="tilt-canvas" width="760" height="280"></canvas>
+      </div>
+    </section>
+
+    <!-- OPTION 2 -->
+    <section class="method-panel active" id="panel-cannon" role="tabpanel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>◈ Option 2</h2>
+        </div>
+        <div class="panel-actions" style="display: flex; gap: 8px;">
+          <button class="quick-switch-btn" data-switch="tilt">◀ Option 1</button>
+          <button class="quick-switch-btn" data-switch="crank">Next: Option 3 ➔</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="cannon-canvas" width="760" height="280"></canvas>
+      </div>
+    </section>
+
+    <!-- OPTION 3 -->
+    <section class="method-panel active" id="panel-crank" role="tabpanel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>◈ Option 3</h2>
+        </div>
+        <div class="panel-actions">
+          <button class="quick-switch-btn" data-switch="cannon">◀ Option 2</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="crank-canvas" width="760" height="280"></canvas>
+      </div>
+    </section>
+
+    <!-- OPTION 4 -->
+    <section class="method-panel active" id="panel-scream" role="tabpanel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>◈ Option 4</h2>
+        </div>
+        <div class="panel-actions">
+          <button class="quick-switch-btn" data-switch="crank">◀ Option 3</button>
+        </div>
+      </div>
+
+      <div class="scream-control" aria-live="polite">
+        <div class="scream-copy">
+          <span class="scream-kicker">Microphone volume control</span>
+          <h3>Scream louder to turn it up. Lower your voice to turn it down.</h3>
+          <p id="scream-status">Press Start Microphone, allow access, then use your voice to control the volume.</p>
+        </div>
+        <div class="scream-meter-wrap">
+          <span class="hud-label">Scream Level</span>
+          <div class="scream-meter"><div id="scream-meter-fill"></div></div>
+          <span id="scream-volume-readout" class="scream-readout">0%</span>
+        </div>
+        <button id="scream-start-btn" class="btn">🎙 Start Microphone</button>
+      </div>
+    </section>
+
+    <!-- Rage Settings & Rotating Quote -->
+    <div class="rage-settings-bar">
+      <div class="toggle-group">
+        <label class="toggle-switch">
+          <input type="checkbox" id="unstable-physics-toggle">
+          <span class="slider-round"></span>
+        </label>
+        <span class="toggle-label">⚡ Earthquake Jitter (Unstable Physics Mode)</span>
+      </div>
+
+      <div class="rage-quote-box" id="rage-quote-text">
+        "A normal slider is for cowards. True audiophiles tilt test-tubes."
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Built for the <strong>TinkerHub Useless Projects Hackathon</strong> • Guaranteed to test human patience</p>
+      <p>Pure Vanilla HTML5, CSS3, Web Audio API, and HTML5 Canvas • Zero external framework bloat</p>
+    </footer>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="tilt.js"></script>
+  <script src="cannon.js"></script>
+  <script src="crank.js"></script>
+  <script src="scream.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
