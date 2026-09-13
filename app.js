@@ -42,6 +42,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Helper to update master volume from any source
   function updateMasterVolume(newVal, source) {
+    if (source !== 'tab-switch' && source !== state.activeTab) {
+      return;
+    }
+
     state.masterVolume = Math.max(0, Math.min(100, newVal));
 
     // Update Sound Engine Gain
@@ -133,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Cannon
     if (document.getElementById('cannon-canvas')) {
       state.controls.cannon = new window.CannonVolumeControl('cannon-canvas', (vol) => {
+        if (state.activeTab !== 'cannon') return;
         state.attempts++;
         state.frustrationIndex += Math.floor(Math.random() * 15) + 8;
         frustrationCounter.textContent = state.frustrationIndex;
@@ -158,26 +163,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Unified Tab Switching with scroll-into-view
   function switchTab(targetTab) {
+    if (state.controls.scream && targetTab !== 'scream') {
+      state.controls.scream.stop();
+    }
+
     state.activeTab = targetTab;
 
     tabButtons.forEach(b => b.classList.toggle('active', b.dataset.tab === targetTab));
     methodPanels.forEach(p => {
-      if (targetTab === 'all') {
-        p.classList.add('active');
-      } else {
-        p.classList.toggle('active', p.id === `panel-${targetTab}`);
-      }
+      p.classList.toggle('active', p.id === `panel-${targetTab}`);
     });
 
     // Synchronize active volumes
     updateMasterVolume(state.masterVolume, 'tab-switch');
 
     // Smoothly scroll the panel into view so the user definitely sees it!
-    if (targetTab !== 'all') {
-      const activePanel = document.getElementById(`panel-${targetTab}`);
-      if (activePanel) {
-        activePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+    const activePanel = document.getElementById(`panel-${targetTab}`);
+    if (activePanel) {
+      activePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
 
